@@ -24,7 +24,7 @@ GLOBAL(memcpy)
 	movw	%dx, %si
 	pushw	%cx
 	shrw	$2, %cx
-	rep; movsl
+	rep; movsl //move 4 byte from [ds:si] to [es:di]
 	popw	%cx
 	andw	$3, %cx
 	rep; movsb
@@ -37,10 +37,10 @@ GLOBAL(memset)
 	pushw	%di
 	movw	%ax, %di
 	movzbl	%dl, %eax
-	imull	$0x01010101,%eax
+	imull	$0x01010101,%eax  //hacklu.   扩展字节用的。传进来的参数可能是1个字节的。比如0xff。这样可以使eax为0xfffffffffff。方便下面4字节传
 	pushw	%cx
 	shrw	$2, %cx
-	rep; stosl
+	rep; stosl //store 4 byte from EAX to [es:di]
 	popw	%cx
 	andw	$3, %cx
 	rep; stosb

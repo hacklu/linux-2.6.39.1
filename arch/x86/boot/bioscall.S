@@ -17,6 +17,7 @@
 	.text
 	.globl	intcall
 	.type	intcall, @function
+/*void intcall(u8 int_no, const struct biosregs *ireg, struct biosregs *oreg); */
 intcall:
 	/* Self-modify the INT instruction.  Ugly, but works. */
 	cmpb	%al, 3f

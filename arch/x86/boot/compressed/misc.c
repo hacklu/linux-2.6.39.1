@@ -310,7 +310,7 @@ static void parse_elf(void *output)
 		case PT_LOAD:
 #ifdef CONFIG_RELOCATABLE
 			dest = output;
-			dest += (phdr->p_paddr - LOAD_PHYSICAL_ADDR);
+			dest += (phdr->p_paddr - LOAD_PHYSICAL_ADDR); //LOAD_PHYSICAL_ADDR=16M
 #else
 			dest = (void *)(phdr->p_paddr);
 #endif
@@ -361,6 +361,7 @@ asmlinkage void decompress_kernel(void *rmode, memptr heap,
 #else
 	if (heap > ((-__PAGE_OFFSET-(128<<20)-1) & 0x7fffffff))
 		error("Destination address too large");
+	//__PAGE_OFFSET=0xc0000000.    heap > (0x37ffffff)
 #endif
 #ifndef CONFIG_RELOCATABLE
 	if ((unsigned long)output != LOAD_PHYSICAL_ADDR)

@@ -86,7 +86,7 @@ static int has_fpu(void)
 	return fsw == 0 && (fcw & 0x103f) == 0x003f;
 }
 
-static int has_eflag(u32 mask)
+static int has_eflag(u32 mask) //hacklu? 不明白其中奥妙
 {
 	u32 f0, f1;
 
@@ -103,6 +103,8 @@ static int has_eflag(u32 mask)
 	    : "=&r" (f0), "=&r" (f1)
 	    : "ri" (mask));
 
+	//f0=eflags reg
+	//f1=eflags reg ^ mask
 	return !!((f0^f1) & mask);
 }
 

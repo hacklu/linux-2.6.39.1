@@ -81,7 +81,7 @@ struct card_info {
 };
 
 #define __videocard struct card_info __attribute__((section(".videocards")))
-extern struct card_info video_cards[], video_cards_end[];
+extern struct card_info video_cards[], video_cards_end[]; //在setup.ld文件中定义！
 
 int mode_defined(u16 mode);	/* video.c */
 

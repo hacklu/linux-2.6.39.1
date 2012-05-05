@@ -33,10 +33,11 @@ static void copy_boot_params(void)
 		u16 cl_offset;
 	};
 	const struct old_cmdline * const oldcmd =
-		(const struct old_cmdline *)OLD_CL_ADDRESS;
+		(const struct old_cmdline *)OLD_CL_ADDRESS; //  #define OLD_CL_ADDRESS		0x020	/* Relative to real mode data */
+	//hacklu?  0x020?? bios used??
 
-	BUILD_BUG_ON(sizeof boot_params != 4096);
-	memcpy(&boot_params.hdr, &hdr, sizeof hdr);
+	BUILD_BUG_ON(sizeof boot_params != 4096); //#define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+	memcpy(&boot_params.hdr, &hdr, sizeof hdr); //#define memcpy(d,s,l) __builtin_memcpy(d,s,l)
 
 	if (!boot_params.hdr.cmd_line_ptr &&
 	    oldcmd->cl_magic == OLD_CL_MAGIC) {
@@ -112,7 +113,7 @@ static void init_heap(void)
 
 	if (boot_params.hdr.loadflags & CAN_USE_HEAP) {
 		asm("leal %P1(%%esp),%0"
-		    : "=r" (stack_end) : "i" (-STACK_SIZE));
+		    : "=r" (stack_end) : "i" (-STACK_SIZE)); //stack_end = (%%esp)-STACK_SIZE; 也就是存放栈底地址。栈是高地址往低地址方向生长
 
 		heap_end = (char *)
 			((size_t)boot_params.hdr.heap_end_ptr + 0x200);
@@ -128,7 +129,7 @@ static void init_heap(void)
 void main(void)
 {
 	/* First, copy the boot header into the "zeropage" */
-	copy_boot_params();
+	copy_boot_params(); //so important!!!
 
 	/* Initialize the early-boot console */
 	console_init();
@@ -146,13 +147,13 @@ void main(void)
 	}
 
 	/* Tell the BIOS what CPU mode we intend to run in. */
-	set_bios_mode();
+	set_bios_mode(); //x86-64 need this
 
 	/* Detect memory layout */
-	detect_memory();
+	detect_memory(); //bios int0x15,0xE820
 
 	/* Set keyboard repeat rate (why?) */
-	keyboard_set_repeat();
+	keyboard_set_repeat(); //seems no use
 
 	/* Query MCA information */
 	query_mca();

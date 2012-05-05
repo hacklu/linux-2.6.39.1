@@ -31,6 +31,7 @@
 #include <asm/asm-offsets.h>
 
 	__HEAD
+//#define __HEAD		.section	".head.text","ax"
 ENTRY(startup_32)
 	cld
 	/*
@@ -38,6 +39,7 @@ ENTRY(startup_32)
 	 * us to not reload segments
 	 */
 	testb	$(1<<6), BP_loadflags(%esi)
+//#define BP_loadflags 529 /* offsetof(struct boot_params, hdr.loadflags)
 	jnz	1f
 
 	cli
@@ -57,7 +59,7 @@ ENTRY(startup_32)
  * data at 0x1e4 (defined as a scratch field) are used as the stack
  * for this calculation. Only 4 bytes are needed.
  */
-	leal	(BP_scratch+4)(%esi), %esp
+	leal	(BP_scratch+4)(%esi), %esp  //nice. 用boot params结构中的4个字节当临时栈。
 	call	1f
 1:	popl	%ebp
 	subl	$1b, %ebp
@@ -68,22 +70,27 @@ ENTRY(startup_32)
  * for safe in-place decompression.
  */
 
-#ifdef CONFIG_RELOCATABLE
-	movl	%ebp, %ebx
-	movl	BP_kernel_alignment(%esi), %eax
+#ifdef CONFIG_RELOCATABLE  //yes. we defined!
+	movl	%ebp, %ebx  // %ebp=1M, 最好去bochs里验证下
+	movl	BP_kernel_alignment(%esi), %eax  //BP_kernel_alignment(%esi) = 0x1000000 = 16M
+//#define CONFIG_PHYSICAL_ALIGN 0x1000000
 	decl	%eax
 	addl    %eax, %ebx
 	notl	%eax
-	andl    %eax, %ebx
+	andl    %eax, %ebx  //对齐操作  a= (a+align-1) & ~(align-1)
+//hacklu.这里想当然了，以为eax仅仅是个对齐。没想到偏移了这么多。。。。。。
+//%ebx = 0x1000000 = 16m!!!!!
 #else
 	movl	$LOAD_PHYSICAL_ADDR, %ebx
+// LOAD_PHYSICAL_ADDR=0x1000000=16M
 #endif
 
 	/* Target address to relocate to for decompression */
-	addl	$z_extract_offset, %ebx
+	addl	$z_extract_offset, %ebx //z_extract_offset 是后面mkpiggy计算出来的。ld的时候才能确定
+//这次的 z_extract_offset 0x003fb000 = 4076k
 
 	/* Set up the stack */
-	leal	boot_stack_end(%ebx), %esp
+	leal	boot_stack_end(%ebx), %esp //我猜拼接的时候后面留了空隙当栈 ,这的栈放在bss段，bss链接的时候放在最后
 
 	/* Zero EFLAGS */
 	pushl	$0
@@ -93,13 +100,16 @@ ENTRY(startup_32)
  * Copy the compressed kernel to the end of our buffer
  * where decompression in place becomes safe.
  */
+//%ebp boot 加载内核到这里  1m
+//%ebx 压缩的内核要移动到这里 16m+z_extract_offset 
 	pushl	%esi
 	leal	(_bss-4)(%ebp), %esi
 	leal	(_bss-4)(%ebx), %edi
 	movl	$(_bss - startup_32), %ecx
 	shrl	$2, %ecx
 	std
-	rep	movsl
+	rep	movsl  //std DF=1. 字符串操作的index递减。即si di是递减的。
+//hacklu? 不明白这里为什么从后面开始移动？？
 	cld
 	popl	%esi
 
@@ -131,7 +141,7 @@ relocated:
 1:
 	cmpl	%ecx, %edx
 	jae	2f
-	addl	%ebx, (%edx)
+	addl	%ebx, (%edx)  //.got 都是指针，相对偏移量，加上起始地址%ebx即可
 	addl	$4, %edx
 	jmp	1b
 2:
@@ -140,10 +150,13 @@ relocated:
  * Do the decompression, and jump to the new kernel..
  */
 	leal	z_extract_offset_negative(%ebx), %ebp
+//hacklu, %ebp = 16m ;bochs 验证之
 				/* push arguments for decompress_kernel: */
 	pushl	%ebp		/* output address */
 	pushl	$z_input_len	/* input_len */
+//也是后面计算出来的 z_input_len 0x003dc6eb = 3953k
 	leal	input_data(%ebx), %eax
+//input_data=0x6c find in piggy.S,0x6c是从反汇编的结果中刚看出来。我猜是因为head_32.S的.head.text编译完刚好长0x6c ;是的，猜对了
 	pushl	%eax		/* input_data */
 	leal	boot_heap(%ebx), %eax
 	pushl	%eax		/* heap area */
@@ -162,17 +175,17 @@ relocated:
  * and where it was actually loaded.
  */
 	movl	%ebp, %ebx
-	subl	$LOAD_PHYSICAL_ADDR, %ebx
+	subl	$LOAD_PHYSICAL_ADDR, %ebx //LOAD_PHYSICAL_ADDR=16m
 	jz	2f	/* Nothing to be done if loaded at compiled addr. */
 /*
  * Process relocations.
  */
-
+//hacklu?  不懂
 1:	subl	$4, %edi
 	movl	(%edi), %ecx
 	testl	%ecx, %ecx
 	jz	2f
-	addl	%ebx, -__PAGE_OFFSET(%ebx, %ecx)
+	addl	%ebx, -__PAGE_OFFSET(%ebx, %ecx) // addl %ebx, -0xc0000000(%ebx,%ecx)
 	jmp	1b
 2:
 #endif

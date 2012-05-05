@@ -237,6 +237,38 @@ init_size:		.long INIT_SIZE		# kernel initialization size
 
 # End of setup header #####################################################
 
+#hacklu add
+#the grub will do this. to support the environment for kernel
+#**** RUNNING THE KERNEL
+#
+#The kernel is started by jumping to the kernel entry point, which is
+#located at *segment* offset 0x20 from the start of the real mode
+#kernel.  This means that if you loaded your real-mode kernel code at
+#0x90000, the kernel entry point is 9020:0000.
+#
+#At entry, ds = es = ss should point to the start of the real-mode
+#kernel code (0x9000 if the code is loaded at 0x90000), sp should be
+#set up properly, normally pointing to the top of the heap, and
+#interrupts should be disabled.  Furthermore, to guard against bugs in
+#the kernel, it is recommended that the boot loader sets fs = gs = ds =
+#es = ss.
+#
+#In our example from above, we would do:
+#
+#	/* Note: in the case of the "old" kernel protocol, base_ptr must
+#	   be == 0x90000 at this point; see the previous sample code */
+#
+#	seg = base_ptr >> 4;
+#
+#	cli();	/* Enter with interrupts disabled! */
+#
+#	/* Set up the real-mode kernel stack */
+#	_SS = seg;
+#	_SP = heap_end;
+#
+#	_DS = _ES = _FS = _GS = seg;
+#	jmp_far(seg+0x20, 0);	/* Run the kernel */
+#
 	.section ".entrytext", "ax"
 start_of_setup:
 #ifdef SAFE_RESET_DISK_CONTROLLER
@@ -249,7 +281,7 @@ start_of_setup:
 # Force %es = %ds
 	movw	%ds, %ax
 	movw	%ax, %es
-	cld
+	cld	#clear direction flags
 
 # Apparently some ancient versions of LILO invoked the kernel with %ss != %ds,
 # which happened to work by accident for the old code.  Recalculate the stack
@@ -266,7 +298,7 @@ start_of_setup:
 	testb	$CAN_USE_HEAP, loadflags
 	jz	1f
 	movw	heap_end_ptr, %dx
-1:	addw	$STACK_SIZE, %dx
+1:	addw	$STACK_SIZE, %dx  #STACK_SIZE=512
 	jnc	2f
 	xorw	%dx, %dx	# Prevent wraparound
 
@@ -280,7 +312,7 @@ start_of_setup:
 
 # We will have entered with %cs = %ds+0x20, normalize %cs so
 # it is on par with the other segments.
-	pushw	%ds
+	pushw	%ds 		#let %cs = %ds
 	pushw	$6f
 	lretw
 6:
@@ -295,8 +327,8 @@ start_of_setup:
 	xorl	%eax, %eax
 	subw	%di, %cx
 	shrw	$2, %cx
-	rep; stosl
-
+	rep; stosl	#stosl  store 4 byte from eax to [es:di]
+			#rep    terminate until cx==0
 # Jump to C code (should not return)
 	calll	main
 

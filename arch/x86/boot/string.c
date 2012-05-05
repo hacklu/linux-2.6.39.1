@@ -94,14 +94,14 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
 	if (!base)
 		base = simple_guess_base(cp);
 
-	if (base == 16 && cp[0] == '0' && TOLOWER(cp[1]) == 'x')
+	if (base == 16 && cp[0] == '0' && TOLOWER(cp[1]) == 'x') //#define TOLOWER(x) ((x) | 0x20)  nice! 如果x已经是小写了，则无影响！
 		cp += 2;
 
 	while (isxdigit(*cp)) {
 		unsigned int value;
 
 		value = isdigit(*cp) ? *cp - '0' : TOLOWER(*cp) - 'a' + 10;
-		if (value >= base)
+		if (value >= base) //传说中的严谨？
 			break;
 		result = result * base + value;
 		cp++;

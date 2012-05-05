@@ -246,6 +246,8 @@ static void save_screen(void)
 		return;		/* Not enough heap to save the screen */
 
 	saved.data = GET_HEAP(u16, saved.x*saved.y);
+//#define GET_HEAP(type, n) \
+	((type *)__get_heap(sizeof(type),__alignof__(type),(n)))
 
 	set_fs(video_segment);
 	copy_from_fs(saved.data, 0, saved.x*saved.y*sizeof(u16));
@@ -314,9 +316,10 @@ static void restore_screen(void)
 
 void set_video(void)
 {
-	u16 mode = boot_params.hdr.vid_mode;
+	u16 mode = boot_params.hdr.vid_mode; //SVGA_MODE,  2
 
 	RESET_HEAP();
+//#define RESET_HEAP() ((void *)( HEAP = _end ))
 
 	store_mode_params();
 	save_screen();

@@ -29,7 +29,7 @@ static inline int myisspace(u8 c)
  */
 int __cmdline_find_option(u32 cmdline_ptr, const char *option, char *buffer, int bufsize)
 {
-	addr_t cptr;
+	addr_t cptr; //typedef unsigned int addr_t
 	char c;
 	int len = -1;
 	const char *opptr = NULL;
@@ -46,8 +46,21 @@ int __cmdline_find_option(u32 cmdline_ptr, const char *option, char *buffer, int
 
 	cptr = cmdline_ptr & 0xf;
 	set_fs(cmdline_ptr >> 4);
-
-	while (cptr < 0x10000 && (c = rdfs8(cptr++))) {
+/*
+static inline void set_fs(u16 seg)
+{
+	asm volatile("movw %0,%%fs" : : "rm" (seg));
+}
+*/
+/*
+static inline u8 rdfs8(addr_t addr)
+{
+	u8 v;
+	asm volatile("movb %%fs:%1,%0" : "=q" (v) : "m" (*(u8 *)addr));
+	return v;
+}
+*/
+	while (cptr < 0x10000 && (c = rdfs8(cptr++))) { //hacklu? 这里为什么读的这么纠结？？
 		switch (state) {
 		case st_wordstart:
 			if (myisspace(c))
