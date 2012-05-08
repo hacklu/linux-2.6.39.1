@@ -23,7 +23,7 @@
 #include <asm/percpu.h>
 
 /* Physical address */
-#define pa(X) ((X) - __PAGE_OFFSET)
+#define pa(X) ((X) - __PAGE_OFFSET)  // (x) - 0xc000 0000
 
 /*
  * References to members of the new_cpu_data structure.
@@ -61,7 +61,7 @@
 #endif
 
 /* Number of possible pages in the lowmem region */
-LOWMEM_PAGES = (((1<<32) - __PAGE_OFFSET) >> PAGE_SHIFT)
+LOWMEM_PAGES = (((1<<32) - __PAGE_OFFSET) >> PAGE_SHIFT) //1G >>12
 	
 /* Enough space to fit pagetables for the low memory linear map */
 MAPPING_BEYOND_END = PAGE_TABLE_SIZE(LOWMEM_PAGES) << PAGE_SHIFT
@@ -84,12 +84,14 @@ RESERVE_BRK(pagetables, INIT_MAP_SIZE)
  * can.
  */
 __HEAD
+#define __HEAD		.section	".head.text","ax"
 ENTRY(startup_32)
-	movl pa(stack_start),%ecx
+	movl pa(stack_start),%ecx    //
 	
 	/* test KEEP_SEGMENTS flag to see if the bootloader is asking
 		us to not reload segments */
 	testb $(1<<6), BP_loadflags(%esi)
+//BP_loadflags(%esi) = 1;
 	jnz 2f
 
 /*
@@ -103,7 +105,8 @@ ENTRY(startup_32)
 	movl %eax,%gs
 	movl %eax,%ss
 2:
-	leal -__PAGE_OFFSET(%ecx),%esp
+	leal -__PAGE_OFFSET(%ecx),%esp   //hacklu?  need bochs!   esp->0x8000 0000
+//hacklu! bochs say: esp=0x168c000  ecx=0xc168c000
 
 /*
  * Clear BSS first so that there are no surprises...
@@ -123,7 +126,7 @@ ENTRY(startup_32)
  * (kexec on panic case). Hence copy out the parameters before initializing
  * page tables.
  */
-	movl $pa(boot_params),%edi
+	movl $pa(boot_params),%edi  //这个boot_params 是kernel/setup.S中定义的
 	movl $(PARAM_SIZE/4),%ecx
 	cld
 	rep
@@ -137,7 +140,7 @@ ENTRY(startup_32)
 	movsl
 1:
 
-#ifdef CONFIG_OLPC
+#ifdef CONFIG_OLPC  //no
 	/* save OFW's pgdir table for later use when calling into OFW */
 	movl %cr3, %eax
 	movl %eax, pa(olpc_ofw_pgd)
@@ -150,7 +153,7 @@ ENTRY(startup_32)
  * Mappings are created both at virtual address 0 (identity mapping)
  * and PAGE_OFFSET for up to _end.
  */
-#ifdef CONFIG_X86_PAE
+#ifdef CONFIG_X86_PAE //no
 
 	/*
 	 * In PAE mode initial_page_table is statically defined to contain
@@ -200,14 +203,20 @@ ENTRY(startup_32)
 #else	/* Not PAE */
 
 page_pde_offset = (__PAGE_OFFSET >> 20);
+//这里本该右移22位，但是页目录项每个占4字节，所以左移2位回来，最终20位。
 
-	movl $pa(__brk_base), %edi
+	movl $pa(__brk_base), %edi      //hacklu-debug .@ 0x1000062
+					//pa(__brk_base) = 0x1827000
+					//pa(initial_page_table) = 0x177d000
 	movl $pa(initial_page_table), %edx
-	movl $PTE_IDENT_ATTR, %eax
+	movl $PTE_IDENT_ATTR, %eax	
+//#define PTE_IDENT_ATTR	 0x003		/* PRESENT+RW */
 10:
 	leal PDE_IDENT_ATTR(%edi),%ecx		/* Create PDE entry */
+//#define PDE_IDENT_ATTR	 0x067		/* PRESENT+RW+USER+DIRTY+ACCESSED */
 	movl %ecx,(%edx)			/* Store identity PDE entry */
 	movl %ecx,page_pde_offset(%edx)		/* Store kernel PDE entry */
+//内核映射的是从3G到4G那一段，所以地址多了0xc000 0000 这么一段偏移.所以查页目录多偏了768项。！！
 	addl $4,%edx
 	movl $1024, %ecx
 11:
@@ -222,6 +231,8 @@ page_pde_offset = (__PAGE_OFFSET >> 20);
 	jb 10b
 	addl $__PAGE_OFFSET, %edi
 	movl %edi, pa(_brk_end)
+//unsigned long _brk_end = (unsigned long)__brk_base;
+//_brk_end是一个long型变量，这句表示把edi的值赋给_brk_end变量。不知道当时怎么就想多了。。
 	shrl $12, %eax
 	movl %eax, pa(max_pfn_mapped)
 
@@ -531,7 +542,7 @@ rp_sidt:
 	movl %eax,8*\trapno(%edi)
 	movl %edx,8*\trapno+4(%edi)
 .endm
-
+x
 	set_early_handler handler=early_divide_err,trapno=0
 	set_early_handler handler=early_illegal_opcode,trapno=6
 	set_early_handler handler=early_protection_fault,trapno=13
@@ -706,7 +717,7 @@ fault_msg:
 # early boot GDT descriptor (must use 1:1 address mapping)
 	.word 0				# 32 bit align gdt_desc.address
 boot_gdt_descr:
-	.word __BOOT_DS+7
+	.word __BOOT_DS+7   //gdt 的长度  从0开始，所以末尾-1、 ds后面还有个ts的entry。(__boot_ds+8)-1
 	.long boot_gdt - __PAGE_OFFSET
 
 	.word 0				# 32-bit align idt_desc.address

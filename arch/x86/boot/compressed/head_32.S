@@ -40,6 +40,7 @@ ENTRY(startup_32)
 	 */
 	testb	$(1<<6), BP_loadflags(%esi)
 //#define BP_loadflags 529 /* offsetof(struct boot_params, hdr.loadflags)
+// BP_loadflags(%esi) = 1;
 	jnz	1f
 
 	cli
@@ -71,7 +72,7 @@ ENTRY(startup_32)
  */
 
 #ifdef CONFIG_RELOCATABLE  //yes. we defined!
-	movl	%ebp, %ebx  // %ebp=1M, 最好去bochs里验证下
+	movl	%ebp, %ebx  // %ebp=1M, 最好去bochs里验证下; yes!
 	movl	BP_kernel_alignment(%esi), %eax  //BP_kernel_alignment(%esi) = 0x1000000 = 16M
 //#define CONFIG_PHYSICAL_ALIGN 0x1000000
 	decl	%eax
