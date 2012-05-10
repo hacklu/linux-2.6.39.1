@@ -48,7 +48,7 @@ void __init i386_start_kernel(void)
 #endif
 
 	/* Call the subarch specific early setup function */
-	switch (boot_params.hdr.hardware_subarch) {
+	switch (boot_params.hdr.hardware_subarch) { //0
 	case X86_SUBARCH_MRST:
 		x86_mrst_early_setup();
 		break;
@@ -56,7 +56,7 @@ void __init i386_start_kernel(void)
 		x86_ce4100_early_setup();
 		break;
 	default:
-		i386_default_early_setup();
+		i386_default_early_setup();  //we go here
 		break;
 	}
 

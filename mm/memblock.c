@@ -301,7 +301,7 @@ static long __init_memblock memblock_add_region(struct memblock_type *type,
 			/* If we can't coalesce, create a new block */
 			if (!memblock_memory_can_coalesce(base, size,
 							  rgn->base,
-							  rgn->size)) {
+							  rgn->size)) { //always return 1!!
 				/* Overlap & can't coalesce are mutually
 				 * exclusive, if you do that, be prepared
 				 * for trouble
@@ -781,9 +781,9 @@ void __init memblock_init(void)
 
 	/* Hookup the initial arrays */
 	memblock.memory.regions	= memblock_memory_init_regions;
-	memblock.memory.max		= INIT_MEMBLOCK_REGIONS;
+	memblock.memory.max		= INIT_MEMBLOCK_REGIONS; //128
 	memblock.reserved.regions	= memblock_reserved_init_regions;
-	memblock.reserved.max	= INIT_MEMBLOCK_REGIONS;
+	memblock.reserved.max	= INIT_MEMBLOCK_REGIONS;  //128
 
 	/* Write a marker in the unused last array entry */
 	memblock.memory.regions[INIT_MEMBLOCK_REGIONS].base = (phys_addr_t)RED_INACTIVE;

@@ -126,7 +126,7 @@ ENTRY(startup_32)
  * (kexec on panic case). Hence copy out the parameters before initializing
  * page tables.
  */
-	movl $pa(boot_params),%edi  //这个boot_params 是kernel/setup.S中定义的
+	movl $pa(boot_params),%edi  //这个boot_params 是kernel/setup.c中定义的
 	movl $(PARAM_SIZE/4),%ecx
 	cld
 	rep
@@ -241,7 +241,7 @@ page_pde_offset = (__PAGE_OFFSET >> 20);
 	movl %eax,pa(initial_page_table+0xffc)
 #endif
 
-#ifdef CONFIG_PARAVIRT
+#ifdef CONFIG_PARAVIRT //no
 	/* This is can only trip for a broken bootloader... */
 	cmpw $0x207, pa(boot_params + BP_version)
 	jb default_entry
@@ -286,6 +286,7 @@ num_subarch_entries = (. - subarch_entries) / 4
  */
 
 __CPUINIT
+//#define __CPUINIT        .section	".cpuinit.text", "ax"
 
 #ifdef CONFIG_SMP
 ENTRY(startup_32_smp)
@@ -316,7 +317,7 @@ default_entry:
  *	not yet offset PAGE_OFFSET..
  */
 #define cr4_bits pa(mmu_cr4_features)
-	movl cr4_bits,%edx
+	movl cr4_bits,%edx  //cr4_bits = 0
 	andl %edx,%edx
 	jz 6f
 	movl %cr4,%eax		# Turn on paging options (PSE,PAE,..)
@@ -375,7 +376,7 @@ default_entry:
 	popfl
 
 #ifdef CONFIG_SMP
-	cmpb $0, ready
+	cmpb $0, ready  //defined in this file
 	jnz checkCPUtype
 #endif /* CONFIG_SMP */
 
@@ -461,7 +462,7 @@ is386:	movl $2,%ecx		# set MP
 	movl $(__KERNEL_PERCPU), %eax
 	movl %eax,%fs			# set this cpu's percpu
 
-#ifdef CONFIG_CC_STACKPROTECTOR
+#ifdef CONFIG_CC_STACKPROTECTOR //no
 	/*
 	 * The linker can't handle this by relocation.  Manually set
 	 * base address in stack canary segment descriptor.
@@ -542,7 +543,7 @@ rp_sidt:
 	movl %eax,8*\trapno(%edi)
 	movl %edx,8*\trapno+4(%edi)
 .endm
-x
+
 	set_early_handler handler=early_divide_err,trapno=0
 	set_early_handler handler=early_illegal_opcode,trapno=6
 	set_early_handler handler=early_protection_fault,trapno=13
@@ -723,7 +724,7 @@ boot_gdt_descr:
 	.word 0				# 32-bit align idt_desc.address
 idt_descr:
 	.word IDT_ENTRIES*8-1		# idt contains 256 entries
-	.long idt_table
+	.long idt_table  //defined in trap.c
 
 # boot GDT descriptor (later on used by CPU#0):
 	.word 0				# 32 bit align gdt_desc.address
