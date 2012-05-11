@@ -750,7 +750,7 @@ void __init setup_arch(char **cmdline_p)
 	rd_prompt = ((boot_params.hdr.ram_size & RAMDISK_PROMPT_FLAG) != 0);
 	rd_doload = ((boot_params.hdr.ram_size & RAMDISK_LOAD_FLAG) != 0);
 #endif
-#ifdef CONFIG_EFI
+#ifdef CONFIG_EFI  //yes
 	if (!strncmp((char *)&boot_params.efi_info.efi_loader_signature,
 #ifdef CONFIG_X86_32
 		     "EL32",
@@ -787,7 +787,7 @@ void __init setup_arch(char **cmdline_p)
 	bss_resource.start = virt_to_phys(&__bss_start);
 	bss_resource.end = virt_to_phys(&__bss_stop)-1;
 
-#ifdef CONFIG_CMDLINE_BOOL
+#ifdef CONFIG_CMDLINE_BOOL  //no
 #ifdef CONFIG_CMDLINE_OVERRIDE
 	strlcpy(boot_command_line, builtin_cmdline, COMMAND_LINE_SIZE);
 #else
@@ -820,13 +820,13 @@ void __init setup_arch(char **cmdline_p)
 	memblock_x86_reserve_range_setup_data();
 
 	if (acpi_mps_check()) {
-#ifdef CONFIG_X86_LOCAL_APIC
+#ifdef CONFIG_X86_LOCAL_APIC  //yes
 		disable_apic = 1;
 #endif
 		setup_clear_cpu_cap(X86_FEATURE_APIC);
 	}
 
-#ifdef CONFIG_PCI
+#ifdef CONFIG_PCI  //yes
 	if (pci_early_dump_regs)
 		early_dump_pci_devices();
 #endif
@@ -922,7 +922,7 @@ void __init setup_arch(char **cmdline_p)
 	/* preallocate 4k for mptable mpc */
 	early_reserve_e820_mpc_new();
 
-#ifdef CONFIG_X86_CHECK_BIOS_CORRUPTION
+#ifdef CONFIG_X86_CHECK_BIOS_CORRUPTION   //yes
 	setup_bios_corruption_check();
 #endif
 
@@ -951,7 +951,7 @@ void __init setup_arch(char **cmdline_p)
 	 * NOTE: On x86-32, only from this point on, fixmaps are ready for use.
 	 */
 
-#ifdef CONFIG_PROVIDE_OHCI1394_DMA_INIT
+#ifdef CONFIG_PROVIDE_OHCI1394_DMA_INIT  //yes
 	if (init_ohci1394_dma_early)
 		init_ohci1394_dma_on_all_controllers();
 #endif
@@ -975,7 +975,7 @@ void __init setup_arch(char **cmdline_p)
 	memblock_find_dma_reserve();
 	dma32_reserve_bootmem();
 
-#ifdef CONFIG_KVM_CLOCK
+#ifdef CONFIG_KVM_CLOCK //no
 	kvmclock_init();
 #endif
 
@@ -1034,8 +1034,8 @@ void __init setup_arch(char **cmdline_p)
 
 	e820_setup_gap();
 
-#ifdef CONFIG_VT
-#if defined(CONFIG_VGA_CONSOLE)
+#ifdef CONFIG_VT    //yes
+#if defined(CONFIG_VGA_CONSOLE)   //yes
 	if (!efi_enabled || (efi_mem_type(0xa0000) != EFI_CONVENTIONAL_MEMORY))
 		conswitchp = &vga_con;
 #elif defined(CONFIG_DUMMY_CONSOLE)

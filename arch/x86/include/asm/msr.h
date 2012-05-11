@@ -121,8 +121,9 @@ extern int native_wrmsr_safe_regs(u32 regs[8]);
 static __always_inline unsigned long long __native_read_tsc(void)
 {
 	DECLARE_ARGS(val, low, high);
+//#define DECLARE_ARGS(val, low, high)	unsigned long long val
 
-	asm volatile("rdtsc" : EAX_EDX_RET(val, low, high));
+	asm volatile("rdtsc" : EAX_EDX_RET(val, low, high));  //read processor's time-stamp counter
 
 	return EAX_EDX_VAL(val, low, high);
 }

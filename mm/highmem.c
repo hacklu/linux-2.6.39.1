@@ -324,7 +324,7 @@ static spinlock_t pool_lock;			/* protects page_address_pool */
 static struct page_address_slot {
 	struct list_head lh;			/* List of page_address_maps */
 	spinlock_t lock;			/* Protect this bucket's list */
-} ____cacheline_aligned_in_smp page_address_htable[1<<PA_HASH_ORDER];
+} ____cacheline_aligned_in_smp page_address_htable[1<<PA_HASH_ORDER];  //1<<7
 
 static struct page_address_slot *page_slot(struct page *page)
 {
@@ -414,13 +414,14 @@ done:
 }
 
 static struct page_address_map page_address_maps[LAST_PKMAP];
+//#define LAST_PKMAP 1024
 
 void __init page_address_init(void)
 {
 	int i;
 
 	INIT_LIST_HEAD(&page_address_pool);
-	for (i = 0; i < ARRAY_SIZE(page_address_maps); i++)
+	for (i = 0; i < ARRAY_SIZE(page_address_maps); i++) 		//#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 		list_add(&page_address_maps[i].list, &page_address_pool);
 	for (i = 0; i < ARRAY_SIZE(page_address_htable); i++) {
 		INIT_LIST_HEAD(&page_address_htable[i].lh);

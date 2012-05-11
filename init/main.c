@@ -454,34 +454,35 @@ static void __init mm_init(void)
 }
 
 asmlinkage void __init start_kernel(void)
+//#define asmlinkage CPP_ASMLINKAGE __attribute__((regparm(0)))  //regparm(0)  不用寄存器传参数
 {
 	char * command_line;
-	extern const struct kernel_param __start___param[], __stop___param[];
+	extern const struct kernel_param __start___param[], __stop___param[];  //这两个是在链接脚本中定义的
 
-	smp_setup_processor_id();
+	smp_setup_processor_id();  //void function
 
 	/*
 	 * Need to run as early as possible, to initialize the
 	 * lockdep hash:
 	 */
-	lockdep_init();
-	debug_objects_early_init();
+	lockdep_init(); //void function
+	debug_objects_early_init(); //void function
 
 	/*
 	 * Set up the the initial canary ASAP:
 	 */
-	boot_init_stack_canary();
+	boot_init_stack_canary(); //初始化堆栈探测仪
 
-	cgroup_init_early();
+	cgroup_init_early();   //control group . 新东西，用来控制一组进程。跳过。
 
-	local_irq_disable();
+	local_irq_disable(); 	//cli
 	early_boot_irqs_disabled = true;
 
 /*
  * Interrupts are still disabled. Do necessary setups, then
  * enable them
  */
-	tick_init();
+	tick_init();		// tick_init - initialize the tick control
 	boot_cpu_init();
 	page_address_init();
 	printk(KERN_NOTICE "%s", linux_banner);
