@@ -83,8 +83,8 @@ PHDRS {
 SECTIONS
 {
 #ifdef CONFIG_X86_32
-        . = LOAD_OFFSET + LOAD_PHYSICAL_ADDR;  // 0xc000 0000 +16m
-        phys_startup_32 = startup_32 - LOAD_OFFSET;   //LOAD_OFFSET = 0xc000 0000
+        . = LOAD_OFFSET + LOAD_PHYSICAL_ADDR;  /* 0xc000 0000 +16m */
+        phys_startup_32 = startup_32 - LOAD_OFFSET;   /*LOAD_OFFSET = 0xc000 0000 */
 #else
         . = __START_KERNEL;
         phys_startup_64 = startup_64 - LOAD_OFFSET;
