@@ -695,7 +695,7 @@ void __init setup_arch(char **cmdline_p)
 
 #ifdef CONFIG_X86_32
 	memcpy(&boot_cpu_data, &new_cpu_data, sizeof(new_cpu_data));
-	visws_early_detect();
+	visws_early_detect();  //void
 
 	/*
 	 * copy kernel address range established so far and switch
@@ -704,9 +704,10 @@ void __init setup_arch(char **cmdline_p)
 	clone_pgd_range(swapper_pg_dir     + KERNEL_PGD_BOUNDARY,
 			initial_page_table + KERNEL_PGD_BOUNDARY,
 			KERNEL_PGD_PTRS);
+	//clone_pgd_range(pgd_t *dst, pgd_t *src, int count);  //基本上就是memcpy(dst,src,count *sizeof(pgd_t)
 
-	load_cr3(swapper_pg_dir);
-	__flush_tlb_all();
+	load_cr3(swapper_pg_dir);   //hacklu? 不明白为什么要挪一下页目录到swapper_pg_dir
+	__flush_tlb_all();  //读出cr3寄存器，再原值写回去
 #else
 	printk(KERN_INFO "Command line: %s\n", boot_command_line);
 #endif
@@ -715,13 +716,13 @@ void __init setup_arch(char **cmdline_p)
 	 * If we have OLPC OFW, we might end up relocating the fixmap due to
 	 * reserve_top(), so do this before touching the ioremap area.
 	 */
-	olpc_ofw_detect();
+	olpc_ofw_detect();  //void
 
 	early_trap_init();
 	early_cpu_init();
 	early_ioremap_init();
 
-	setup_olpc_ofw_pgd();
+	setup_olpc_ofw_pgd(); //void
 
 	ROOT_DEV = old_decode_dev(boot_params.hdr.root_dev);
 	screen_info = boot_params.screen_info;
@@ -745,7 +746,7 @@ void __init setup_arch(char **cmdline_p)
 	bootloader_version  = bootloader_type & 0xf;
 	bootloader_version |= boot_params.hdr.ext_loader_ver << 4;
 
-#ifdef CONFIG_BLK_DEV_RAM
+#ifdef CONFIG_BLK_DEV_RAM  //yes
 	rd_image_start = boot_params.hdr.ram_size & RAMDISK_IMAGE_START_MASK;
 	rd_prompt = ((boot_params.hdr.ram_size & RAMDISK_PROMPT_FLAG) != 0);
 	rd_doload = ((boot_params.hdr.ram_size & RAMDISK_LOAD_FLAG) != 0);
@@ -759,14 +760,16 @@ void __init setup_arch(char **cmdline_p)
 #endif
 	 4)) {
 		efi_enabled = 1;
-		efi_memblock_x86_reserve_range();
+		efi_memblock_x86_reserve_range(); //"efi memory"
 	}
 #endif
 
-	x86_init.oem.arch_setup();
+	x86_init.oem.arch_setup(); //void
 
 	iomem_resource.end = (1ULL << boot_cpu_data.x86_phys_bits) - 1;
+
 	setup_memory_map();
+
 	parse_setup_data();
 	/* update the e820_saved too */
 	e820_reserve_setup_data();
@@ -812,14 +815,14 @@ void __init setup_arch(char **cmdline_p)
 	 */
 	x86_configure_nx();
 
-	parse_early_param();
+	parse_early_param();  //启动参数解析，很优雅的方式
 
-	x86_report_nx();
+	x86_report_nx(); //void
 
 	/* after early param, so could get panic from serial */
-	memblock_x86_reserve_range_setup_data();
+	memblock_x86_reserve_range_setup_data();  //memory
 
-	if (acpi_mps_check()) {
+	if (acpi_mps_check()) {  //if(0)
 #ifdef CONFIG_X86_LOCAL_APIC  //yes
 		disable_apic = 1;
 #endif
@@ -907,7 +910,7 @@ void __init setup_arch(char **cmdline_p)
 	 */
 	reserve_brk();
 
-	cleanup_highmap();
+	cleanup_highmap();  //void
 
 	memblock.current_limit = get_max_mapped();
 	memblock_x86_fill();
@@ -931,7 +934,7 @@ void __init setup_arch(char **cmdline_p)
 
 	setup_trampolines();
 
-	init_gbpages();
+	init_gbpages();  //void
 
 	/* max_pfn_mapped is updated here */
 	max_low_pfn_mapped = init_memory_mapping(0, max_low_pfn<<PAGE_SHIFT);

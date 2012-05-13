@@ -590,7 +590,7 @@ asmlinkage void __init start_kernel(void)
 	if (late_time_init)
 		late_time_init();
 	sched_clock_init();
-	calibrate_delay();
+	calibrate_delay(); //ok
 	pidmap_init();
 	anon_vma_init();
 #ifdef CONFIG_X86

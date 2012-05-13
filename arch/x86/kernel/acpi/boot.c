@@ -1617,7 +1617,7 @@ early_param("pci", parse_pci);
 
 int __init acpi_mps_check(void)
 {
-#if defined(CONFIG_X86_LOCAL_APIC) && !defined(CONFIG_X86_MPPARSE)
+#if defined(CONFIG_X86_LOCAL_APIC) && !defined(CONFIG_X86_MPPARSE)  //no
 /* mptable code is not built-in*/
 	if (acpi_disabled || acpi_noirq) {
 		printk(KERN_WARNING "MPS support code is not built-in.\n"

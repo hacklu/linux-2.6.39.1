@@ -814,7 +814,7 @@ dotraplinkage void do_iret_error(struct pt_regs *regs, long error_code)
 /* Set of traps needed for early debugging. */
 void __init early_trap_init(void)
 {
-	set_intr_gate_ist(1, &debug, DEBUG_STACK);
+	set_intr_gate_ist(1, &debug, DEBUG_STACK);  //DEBUG_STACK = 0
 	/* int3 can be called from all */
 	set_system_intr_gate_ist(3, &int3, DEBUG_STACK);
 	set_intr_gate(14, &page_fault);
