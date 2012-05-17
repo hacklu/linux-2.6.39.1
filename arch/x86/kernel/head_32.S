@@ -86,7 +86,7 @@ RESERVE_BRK(pagetables, INIT_MAP_SIZE)
 __HEAD
 #define __HEAD		.section	".head.text","ax"
 ENTRY(startup_32)
-	movl pa(stack_start),%ecx    //
+	movl pa(stack_start),%ecx    // 0号进程！
 	
 	/* test KEEP_SEGMENTS flag to see if the bootloader is asking
 		us to not reload segments */
